@@ -5,7 +5,7 @@ import type { RsvpConfirmationPayload } from "@/types/invitation";
 type Context = { params: Promise<{ token: string }> };
 
 export async function GET(_request: Request, { params }: Context) {
-  try { const item = await getInvitation((await params).token); return item ? NextResponse.json(item) : NextResponse.json({ error: "Invitación no encontrada." }, { status: 404 }); }
+  try { const item = await getInvitation((await params).token); return item ? NextResponse.json(item, { headers: { "Cache-Control": "private, no-store" } }) : NextResponse.json({ error: "Invitación no encontrada." }, { status: 404, headers: { "Cache-Control": "no-store" } }); }
   catch { return NextResponse.json({ error: "No se pudo cargar la invitación." }, { status: 500 }); }
 }
 

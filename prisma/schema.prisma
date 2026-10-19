@@ -58,3 +58,18 @@ model Invitation {
 
   @@index([eventId, status])
 }
+
+model AdminSession {
+  id        String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model AdminLoginThrottle {
+  id           String   @id
+  failures     Int      @default(0)
+  blockedUntil DateTime?
+  updatedAt    DateTime @updatedAt
+}

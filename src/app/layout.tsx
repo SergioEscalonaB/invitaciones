@@ -30,6 +30,8 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({

@@ -72,10 +72,9 @@ export const defaultEventDetails: EventDetails = {
  * DATOS DE DEMOSTRACIÓN PARA INVITACIONES
  * Cada elemento representa un enlace único accesible en /invitacion/[token]
  */
-export const defaultMockInvitations: Invitation[] = [
+export const defaultMockInvitations: Omit<Invitation, "token">[] = [
   {
     id: "inv-001",
-    token: "familia-mendoza",
     guestName: "Familia Mendoza Pérez",
     allowedGuests: 4,
     status: "pending",
@@ -85,7 +84,6 @@ export const defaultMockInvitations: Invitation[] = [
   },
   {
     id: "inv-002",
-    token: "sofia-castillo",
     guestName: "Sofía Castillo & Acompañante",
     allowedGuests: 2,
     status: "confirmed",
@@ -97,7 +95,6 @@ export const defaultMockInvitations: Invitation[] = [
   },
   {
     id: "inv-003",
-    token: "carlos-ruiz",
     guestName: "Dr. Carlos Ruiz & Familia",
     allowedGuests: 3,
     status: "pending",
@@ -106,7 +103,6 @@ export const defaultMockInvitations: Invitation[] = [
   },
   {
     id: "inv-004",
-    token: "tia-elena",
     guestName: "Tía Elena & Familia Gómez",
     allowedGuests: 5,
     status: "pending",
@@ -115,7 +111,6 @@ export const defaultMockInvitations: Invitation[] = [
   },
   {
     id: "inv-005",
-    token: "mateo-fernandez",
     guestName: "Mateo Fernández",
     allowedGuests: 1,
     status: "declined",
@@ -126,7 +121,6 @@ export const defaultMockInvitations: Invitation[] = [
   },
   {
     id: "inv-006",
-    token: "familia-alvarez",
     guestName: "Ing. Javier Álvarez y Sra.",
     allowedGuests: 2,
     status: "pending",
