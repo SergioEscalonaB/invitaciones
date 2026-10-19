@@ -1,16 +1,9 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { defaultMockInvitations } from "@/data/event";
 import { InvitationClientView } from "./InvitationClientView";
 
 interface PageProps {
   params: Promise<{ token: string }>;
-}
-
-export function generateStaticParams() {
-  return defaultMockInvitations.map((inv) => ({
-    token: inv.token,
-  }));
 }
 
 export const metadata: Metadata = {

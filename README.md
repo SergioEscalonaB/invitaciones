@@ -11,6 +11,8 @@ npm run dev
 
 Abre `http://localhost:3000`; la raíz redirige al panel administrativo. Los datos se guardan en PostgreSQL mediante Prisma.
 
+El panel requiere `ADMIN_PASSWORD` y `ADMIN_SESSION_SECRET`. Genera un secreto aleatorio de al menos 32 bytes y guárdalo únicamente en el entorno del servidor. Los invitados no necesitan iniciar sesión: su token aleatorio funciona como credencial del enlace privado.
+
 ## Flujo principal
 
 1. Entra al panel y crea una invitación con nombre y cupo.
@@ -33,4 +35,4 @@ La aplicación usa endpoints internos para que las credenciales nunca lleguen al
 
 ## Producción
 
-Los enlaces usan `DOMINIO` como origen y terminan en `/invitacion/[token]`. En desarrollo usa `DOMINIO=http://localhost:3000`; en producción cámbialo por `https://tu-dominio.com`. Antes de publicar quedan pendientes la autenticación del panel y los secretos del entorno de producción.
+Los enlaces usan `DOMINIO` como origen y terminan en `/invitacion/[token]`. El token contiene 256 bits aleatorios y no deriva del nombre del invitado. En desarrollo usa `DOMINIO=http://localhost:3000`; en producción cámbialo por `https://tu-dominio.com` y configura los secretos administrativos del entorno.

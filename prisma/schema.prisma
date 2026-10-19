@@ -42,7 +42,7 @@ model Event {
 
 model Invitation {
   id              String           @id @default(cuid())
-  token           String           @unique @default(cuid())
+  token           String           @unique
   guestName       String
   allowedGuests   Int
   status          InvitationStatus @default(PENDING)
