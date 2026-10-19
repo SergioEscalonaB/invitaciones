@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-display: var(--font-cinzel), serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-wine-950: #120308;
+  --color-wine-900: #1D060F;
+  --color-wine-800: #2C0B18;
+  --color-wine-700: #441328;
+  --color-wine-600: #631C3B;
+
+  --color-rose-100: #FCF4F6;
+  --color-rose-200: #F7E2E6;
+  --color-rose-300: #EFC7CF;
+  --color-rose-400: #E2A1AE;
+  --color-rose-500: #D37B8C;
+
+  --color-gold-100: #FAF6ED;
+  --color-gold-200: #F3E8CF;
+  --color-gold-300: #E6D09F;
+  --color-gold-400: #D7B56E;
+  --color-gold-500: #C59A41;
+  --color-gold-600: #A87D2C;
+
+  --color-ivory: #FAF7F2;
+  --color-champagne: #F5E8D8;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #14040A;
+  color: #FAF6F0;
+  font-family: var(--font-jakarta), sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom romantic typography classes */
+.font-serif-cormorant {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.font-display-cinzel {
+  font-family: var(--font-cinzel), serif;
+}
+
+/* Shimmering gold text */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF3D6 0%, #D4AF37 35%, #F7E8AA 60%, #AA771C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-rose-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8D1D8 40%, #E29CA9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism card styles */
+.glass-panel {
+  background: rgba(36, 11, 23, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 25px rgba(212, 175, 55, 0.08);
+}
+
+.glass-panel-subtle {
+  background: rgba(26, 7, 16, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(243, 229, 171, 0.15);
+}
+
+.gold-border {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.25);
+}
+
+.rose-glow {
+  box-shadow: 0 0 30px rgba(226, 161, 174, 0.2);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #14040A;
+}
+::-webkit-scrollbar-thumb {
+  background: #441328;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #631C3B;
+}
+
+/* Animations */
+@keyframes fairyFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes fairyGlowPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes waxPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(212, 175, 55, 0);
+  }
+}
+
+.animate-fairy-float {
+  animation: fairyFloat 6s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: fairyGlowPulse 4s ease-in-out infinite;
+}
+
+.animate-star-twinkle {
+  animation: starTwinkle 3s ease-in-out infinite;
+}
+
+.animate-wax-pulse {
+  animation: waxPulse 2.5s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
