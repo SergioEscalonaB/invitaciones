@@ -8,8 +8,12 @@ export interface IInvitationService {
   getAllInvitations(): Promise<Invitation[]>;
   createInvitation(data: Pick<Invitation, "guestName" | "allowedGuests">): Promise<Invitation>;
   getStats(): Promise<InvitationStats>;
+  getDashboard(force?: boolean): Promise<{ invitations: Invitation[]; stats: InvitationStats }>;
   resetToDefaults(): Promise<void>;
 }
+
+type DashboardData = { invitations: Invitation[]; stats: InvitationStats };
+let dashboardRequest: Promise<DashboardData> | null = null;
 
 async function api<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...options?.headers } });
@@ -29,6 +33,13 @@ class ApiInvitationService implements IInvitationService {
   async getAllInvitations() { return (await api<{ invitations: Invitation[] }>("/api/invitations")).invitations; }
   async createInvitation(data: Pick<Invitation, "guestName" | "allowedGuests">) { return api<Invitation>("/api/invitations", { method: "POST", body: JSON.stringify(data) }); }
   async getStats() { return (await api<{ stats: InvitationStats }>("/api/invitations")).stats; }
+  async getDashboard(force = false) {
+    if (force) dashboardRequest = null;
+    dashboardRequest ??= api<DashboardData>("/api/invitations").finally(() => {
+      window.setTimeout(() => { dashboardRequest = null; }, 250);
+    });
+    return dashboardRequest;
+  }
   async resetToDefaults() { throw new Error("El restablecimiento no está disponible con la base de datos conectada."); }
 }
 

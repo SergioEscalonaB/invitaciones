@@ -40,8 +40,10 @@ export async function seedDemoInvitations(eventId: string) {
 export async function getEventDetails(): Promise<EventDetails> { return structuredClone(defaultEventDetails); }
 
 export async function getAllInvitations() {
-  const event = await ensureEvent(); await seedDemoInvitations(event.id);
-  return (await prisma.invitation.findMany({ where: { eventId: event.id }, orderBy: { createdAt: "desc" } })).map(mapInvitation);
+  return (await prisma.invitation.findMany({
+    where: { event: { slug: EVENT_SLUG } },
+    orderBy: { createdAt: "desc" },
+  })).map(mapInvitation);
 }
 
 export async function getInvitation(token: string) {
@@ -71,7 +73,10 @@ export async function declineInvitation(token: string, note?: string) {
   return mapInvitation(await prisma.invitation.update({ where: { token }, data: { status: "DECLINED", confirmedGuests: 0, attendees: [], note: note?.trim() || null, respondedAt: new Date() } }));
 }
 
-export async function getStats(): Promise<InvitationStats> {
-  const list = await getAllInvitations();
+export function calculateStats(list: Awaited<ReturnType<typeof getAllInvitations>>): InvitationStats {
   return { totalInvitations:list.length, totalAllowedGuests:list.reduce((n,i)=>n+i.allowedGuests,0), totalConfirmedGuests:list.reduce((n,i)=>n+i.confirmedGuests,0), totalDeclinedGuests:list.filter(i=>i.status==="declined").reduce((n,i)=>n+i.allowedGuests,0), pendingInvitations:list.filter(i=>i.status==="pending"||i.status==="sent").length, confirmedInvitations:list.filter(i=>i.status==="confirmed").length, declinedInvitations:list.filter(i=>i.status==="declined").length };
+}
+
+export async function getStats(): Promise<InvitationStats> {
+  return calculateStats(await getAllInvitations());
 }
