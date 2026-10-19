@@ -11,7 +11,7 @@ npm run dev
 
 Abre `http://localhost:3000`; la raíz redirige al panel administrativo. Los datos se guardan en PostgreSQL mediante Prisma.
 
-El panel requiere `ADMIN_PASSWORD` con al menos 12 caracteres. Las sesiones se almacenan mediante hash en PostgreSQL, expiran a las 12 horas y pueden revocarse. Los invitados no necesitan iniciar sesión: su token aleatorio funciona como credencial del enlace privado.
+El panel requiere una variable `ADMIN_PASSWORD` no vacía. Las sesiones se almacenan mediante hash en PostgreSQL, expiran a las 12 horas y pueden revocarse. Los invitados no necesitan iniciar sesión: su token aleatorio funciona como credencial del enlace privado.
 
 ## Flujo principal
 

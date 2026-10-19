@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, ADMIN_SESSION_SECONDS, authIsConfigured, clearLoginFailures, createAdminSession, loginIsBlocked, passwordMatches, recordLoginFailure } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
+  if (!process.env.ADMIN_PASSWORD) return NextResponse.json({ error: "ADMIN_PASSWORD no está configurada en el archivo .env." }, { status: 503 });
   if (!authIsConfigured()) return NextResponse.json({ error: "La autenticación administrativa no está configurada." }, { status: 503 });
   if (await loginIsBlocked()) return NextResponse.json({ error: "Demasiados intentos. Intenta de nuevo en 15 minutos." }, { status: 429 });
   const body = await request.json() as { password?: string };

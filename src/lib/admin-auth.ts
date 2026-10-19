@@ -10,12 +10,12 @@ const BLOCK_MINUTES = 15;
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
 export function authIsConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length >= 12);
+  return Boolean(process.env.ADMIN_PASSWORD);
 }
 
 export function passwordMatches(candidate: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
-  if (!expected || expected.length < 12) return false;
+  if (!expected) return false;
   const left = Buffer.from(candidate); const right = Buffer.from(expected);
   return left.length === right.length && timingSafeEqual(left, right);
 }
