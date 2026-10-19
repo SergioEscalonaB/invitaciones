@@ -29,6 +29,10 @@ model Event {
   dressCodeDetails String?
   welcomeMessage   String       @db.Text
   emotionalQuote   String?      @db.Text
+  parentsNames     Json?
+  godparentsNames  String?
+  itinerary        Json
+  giftsInfo        Json
   rsvpDeadline     String?
   contactPhone     String?
   invitations      Invitation[]

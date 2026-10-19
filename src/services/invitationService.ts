@@ -1,22 +1,5 @@
-import {
-  EventDetails,
-  Invitation,
-  InvitationStats,
-  RsvpConfirmationPayload,
-  RsvpDeclinePayload,
-} from "@/types/invitation";
-import { defaultEventDetails, defaultMockInvitations } from "@/data/event";
+import type { EventDetails, Invitation, InvitationStats, RsvpConfirmationPayload, RsvpDeclinePayload } from "@/types/invitation";
 
-const STORAGE_KEY = "quinceanera_invitations_v1";
-const EVENT_STORAGE_KEY = "quinceanera_event_v1";
-
-/**
- * Interfaz formal para el servicio de invitaciones.
- * Implementaciones futuras:
- * - SupabaseInvitationService
- * - GoogleSheetsInvitationService
- * - FirebaseInvitationService
- */
 export interface IInvitationService {
   getEventDetails(): Promise<EventDetails>;
   updateEventDetails(data: EventDetails): Promise<EventDetails>;
@@ -24,193 +7,31 @@ export interface IInvitationService {
   confirmRsvp(token: string, payload: RsvpConfirmationPayload): Promise<Invitation>;
   declineRsvp(token: string, payload?: RsvpDeclinePayload): Promise<Invitation>;
   getAllInvitations(): Promise<Invitation[]>;
-  createInvitation(
-    data: Pick<Invitation, "guestName" | "allowedGuests"> & { token?: string }
-  ): Promise<Invitation>;
+  createInvitation(data: Pick<Invitation, "guestName" | "allowedGuests"> & { token?: string }): Promise<Invitation>;
   getStats(): Promise<InvitationStats>;
   resetToDefaults(): Promise<void>;
 }
 
-class MockInvitationService implements IInvitationService {
-  private isBrowser(): boolean {
-    return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-  }
-
-  private loadInvitations(): Invitation[] {
-    if (!this.isBrowser()) {
-      return [...defaultMockInvitations];
-    }
-
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultMockInvitations));
-        return [...defaultMockInvitations];
-      }
-      return JSON.parse(stored) as Invitation[];
-    } catch {
-      return [...defaultMockInvitations];
-    }
-  }
-
-  private saveInvitations(invitations: Invitation[]): void {
-    if (this.isBrowser()) {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(invitations));
-      } catch (err) {
-        console.warn("No se pudo guardar en localStorage", err);
-      }
-    }
-  }
-
-  async getEventDetails(): Promise<EventDetails> {
-    if (this.isBrowser()) {
-      const stored = window.localStorage.getItem(EVENT_STORAGE_KEY);
-      if (stored) return JSON.parse(stored) as EventDetails;
-    }
-    return { ...defaultEventDetails };
-  }
-
-  async updateEventDetails(data: EventDetails): Promise<EventDetails> {
-    if (this.isBrowser()) {
-      window.localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(data));
-    }
-    return { ...data };
-  }
-
-  async getInvitationByToken(token: string): Promise<Invitation | null> {
-    const list = this.loadInvitations();
-    const cleanToken = token.trim().toLowerCase();
-    const found = list.find((inv) => inv.token.toLowerCase() === cleanToken);
-    return found ? { ...found } : null;
-  }
-
-  async confirmRsvp(token: string, payload: RsvpConfirmationPayload): Promise<Invitation> {
-    const list = this.loadInvitations();
-    const cleanToken = token.trim().toLowerCase();
-    const index = list.findIndex((inv) => inv.token.toLowerCase() === cleanToken);
-
-    if (index === -1) {
-      throw new Error("Invitación no encontrada con el token proporcionado.");
-    }
-
-    const invitation = list[index];
-
-    // Validación estricta de cupo asignado
-    if (payload.confirmedGuests > invitation.allowedGuests) {
-      throw new Error(
-        `El número de asistentes (${payload.confirmedGuests}) supera el cupo máximo permitido (${invitation.allowedGuests}).`
-      );
-    }
-
-    if (payload.confirmedGuests < 1) {
-      throw new Error("Debes indicar al menos un asistente para confirmar.");
-    }
-
-    const updated: Invitation = {
-      ...invitation,
-      status: "confirmed",
-      confirmedGuests: payload.confirmedGuests,
-      attendees: payload.attendees || [],
-      note: payload.note?.trim() || invitation.note || "",
-      respondedAt: new Date().toISOString(),
-    };
-
-    list[index] = updated;
-    this.saveInvitations(list);
-    return { ...updated };
-  }
-
-  async declineRsvp(token: string, payload?: RsvpDeclinePayload): Promise<Invitation> {
-    const list = this.loadInvitations();
-    const cleanToken = token.trim().toLowerCase();
-    const index = list.findIndex((inv) => inv.token.toLowerCase() === cleanToken);
-
-    if (index === -1) {
-      throw new Error("Invitación no encontrada con el token proporcionado.");
-    }
-
-    const invitation = list[index];
-
-    const updated: Invitation = {
-      ...invitation,
-      status: "declined",
-      confirmedGuests: 0,
-      attendees: [],
-      note: payload?.note?.trim() || invitation.note || "",
-      respondedAt: new Date().toISOString(),
-    };
-
-    list[index] = updated;
-    this.saveInvitations(list);
-    return { ...updated };
-  }
-
-  async getAllInvitations(): Promise<Invitation[]> {
-    return this.loadInvitations();
-  }
-
-  async createInvitation(
-    data: Pick<Invitation, "guestName" | "allowedGuests"> & { token?: string }
-  ): Promise<Invitation> {
-    const list = this.loadInvitations();
-
-    const slug =
-      data.token?.trim().toLowerCase() ||
-      data.guestName
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
-    const newInvitation: Invitation = {
-      id: `inv-${Date.now()}`,
-      token: slug || `inv-${Math.random().toString(36).substring(2, 7)}`,
-      guestName: data.guestName.trim(),
-      allowedGuests: Math.max(1, data.allowedGuests),
-      status: "pending",
-      confirmedGuests: 0,
-      attendees: [],
-      sentAt: new Date().toISOString(),
-    };
-
-    list.push(newInvitation);
-    this.saveInvitations(list);
-    return { ...newInvitation };
-  }
-
-  async getStats(): Promise<InvitationStats> {
-    const list = this.loadInvitations();
-
-    const totalInvitations = list.length;
-    const totalAllowedGuests = list.reduce((sum, inv) => sum + inv.allowedGuests, 0);
-    const totalConfirmedGuests = list.reduce((sum, inv) => sum + (inv.confirmedGuests || 0), 0);
-    const pendingInvitations = list.filter((inv) => inv.status === "pending" || inv.status === "sent").length;
-    const confirmedInvitations = list.filter((inv) => inv.status === "confirmed").length;
-    const declinedInvitations = list.filter((inv) => inv.status === "declined").length;
-    const totalDeclinedGuests = list
-      .filter((inv) => inv.status === "declined")
-      .reduce((sum, inv) => sum + inv.allowedGuests, 0);
-
-    return {
-      totalInvitations,
-      totalAllowedGuests,
-      totalConfirmedGuests,
-      totalDeclinedGuests,
-      pendingInvitations,
-      confirmedInvitations,
-      declinedInvitations,
-    };
-  }
-
-  async resetToDefaults(): Promise<void> {
-    if (this.isBrowser()) {
-      window.localStorage.removeItem(STORAGE_KEY);
-      window.localStorage.removeItem(EVENT_STORAGE_KEY);
-    }
-  }
+async function api<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...options?.headers } });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Ocurrió un error inesperado.");
+  return data as T;
 }
 
-// Instancia singleton del servicio por defecto
-export const invitationService: IInvitationService = new MockInvitationService();
+class ApiInvitationService implements IInvitationService {
+  async getEventDetails() { return api<EventDetails>("/api/event"); }
+  async updateEventDetails(data: EventDetails) { return api<EventDetails>("/api/event", { method: "PUT", body: JSON.stringify(data) }); }
+  async getInvitationByToken(token: string) {
+    try { return await api<Invitation>(`/api/invitations/${encodeURIComponent(token)}`); }
+    catch (error) { if (error instanceof Error && error.message === "Invitación no encontrada.") return null; throw error; }
+  }
+  async confirmRsvp(token: string, payload: RsvpConfirmationPayload) { return api<Invitation>(`/api/invitations/${encodeURIComponent(token)}`, { method: "PATCH", body: JSON.stringify({ action: "confirm", ...payload }) }); }
+  async declineRsvp(token: string, payload?: RsvpDeclinePayload) { return api<Invitation>(`/api/invitations/${encodeURIComponent(token)}`, { method: "PATCH", body: JSON.stringify({ action: "decline", note: payload?.note }) }); }
+  async getAllInvitations() { return (await api<{ invitations: Invitation[] }>("/api/invitations")).invitations; }
+  async createInvitation(data: Pick<Invitation, "guestName" | "allowedGuests"> & { token?: string }) { return api<Invitation>("/api/invitations", { method: "POST", body: JSON.stringify(data) }); }
+  async getStats() { return (await api<{ stats: InvitationStats }>("/api/invitations")).stats; }
+  async resetToDefaults() { throw new Error("El restablecimiento no está disponible con la base de datos conectada."); }
+}
+
+export const invitationService: IInvitationService = new ApiInvitationService();

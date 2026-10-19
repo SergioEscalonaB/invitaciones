@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:3000`; la raíz redirige al panel administrativo. Los datos del MVP se guardan en `localStorage`, por lo que se pueden probar sin una base de datos.
+Abre `http://localhost:3000`; la raíz redirige al panel administrativo. Los datos se guardan en PostgreSQL mediante Prisma.
 
 ## Flujo principal
 
@@ -21,7 +21,7 @@ Abre `http://localhost:3000`; la raíz redirige al panel administrativo. Los dat
 
 ## PostgreSQL y Prisma
 
-El modelo futuro está definido en `prisma/schema.prisma`. Cuando exista una base de datos:
+El modelo está definido en `prisma/schema.prisma`. Para conectar otro PostgreSQL:
 
 ```bash
 copy .env.example .env
@@ -29,8 +29,8 @@ npx prisma migrate dev --name init
 npx prisma generate
 ```
 
-Después se debe sustituir `MockInvitationService` por una implementación de servidor basada en Prisma y proteger `/admin` con autenticación. No ejecutes una migración hasta configurar una `DATABASE_URL` real.
+La aplicación usa endpoints internos para que las credenciales nunca lleguen al navegador. Protege `/admin` con autenticación antes de publicar.
 
 ## Producción
 
-Los enlaces usan siempre la ruta relativa `/invitacion/[token]`, así que al desplegar se convierten automáticamente en `https://tu-dominio.com/invitacion/token`. Antes de publicar quedan pendientes: autenticación del panel, persistencia con PostgreSQL, validación de permisos en el servidor y secretos de producción.
+Los enlaces usan `DOMINIO` como origen y terminan en `/invitacion/[token]`. En desarrollo usa `DOMINIO=http://localhost:3000`; en producción cámbialo por `https://tu-dominio.com`. Antes de publicar quedan pendientes la autenticación del panel y los secretos del entorno de producción.

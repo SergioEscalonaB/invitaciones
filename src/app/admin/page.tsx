@@ -28,16 +28,18 @@ export default function AdminPage() {
   const [allowedGuests, setAllowedGuests] = useState(2);
   const [copied, setCopied] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [siteUrl, setSiteUrl] = useState("http://localhost:3000");
   const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(null), 2600); };
   const load = async () => { const [list, summary, eventDetails] = await Promise.all([invitationService.getAllInvitations(), invitationService.getStats(), invitationService.getEventDetails()]); setInvitations(list); setStats(summary); setEvent(eventDetails); setLoading(false); };
   useEffect(() => {
     void Promise.all([invitationService.getAllInvitations(), invitationService.getStats(), invitationService.getEventDetails()]).then(([list, summary, eventDetails]) => {
       setInvitations(list); setStats(summary); setEvent(eventDetails); setLoading(false);
-    });
+    }).catch(() => setLoading(false));
+    void fetch("/api/config").then((response) => response.json()).then((config: { siteUrl: string }) => setSiteUrl(config.siteUrl)).catch(() => undefined);
   }, []);
   const filtered = useMemo(() => invitations.filter((inv) => `${inv.guestName} ${inv.token}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || inv.status === filter)), [invitations, query, filter]);
   const createInvitation = async (e: FormEvent) => { e.preventDefault(); await invitationService.createInvitation({ guestName, allowedGuests }); setGuestName(""); setAllowedGuests(2); setCreateOpen(false); await load(); notify("Invitación creada y enlace listo para compartir"); };
-  const copyLink = async (token: string) => { await navigator.clipboard.writeText(`${window.location.origin}/invitacion/${token}`); setCopied(token); notify("Enlace privado copiado"); window.setTimeout(() => setCopied(null), 1800); };
+  const copyLink = async (token: string) => { await navigator.clipboard.writeText(`${siteUrl}/invitacion/${token}`); setCopied(token); notify("Enlace privado copiado"); window.setTimeout(() => setCopied(null), 1800); };
   const saveEvent = async (e: FormEvent) => { e.preventDefault(); await invitationService.updateEventDetails(event); notify("Cambios guardados localmente"); };
   const selectSection = (value: Section) => { setSection(value); setMenuOpen(false); };
   const previewInvitation = invitations[0];
