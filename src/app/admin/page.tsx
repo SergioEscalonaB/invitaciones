@@ -1,547 +1,73 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Users,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Search,
-  Filter,
-  Copy,
-  Check,
-  ExternalLink,
-  Plus,
-  RotateCcw,
-  Sparkles,
-  AlertTriangle,
-  Heart,
-  ChevronRight,
-  ShieldAlert,
-} from "lucide-react";
-import { Invitation, InvitationStats, InvitationStatus } from "@/types/invitation";
+import { CalendarDays, Check, CheckCircle2, ChevronRight, Clipboard, Clock3, ExternalLink, Eye, FilePenLine, LayoutDashboard, Link2, MapPin, Menu, MoreHorizontal, Plus, Search, Settings2, Sparkles, Users, X, XCircle } from "lucide-react";
+import { defaultEventDetails } from "@/data/event";
 import { invitationService } from "@/services/invitationService";
-import { FairyDust } from "@/components/FairyDust";
+import type { EventDetails, Invitation, InvitationStats, InvitationStatus } from "@/types/invitation";
+
+type Section = "resumen" | "invitaciones" | "plantilla" | "evento";
+const nav: { id: Section; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "resumen", label: "Resumen", icon: LayoutDashboard }, { id: "invitaciones", label: "Invitaciones", icon: Link2 },
+  { id: "plantilla", label: "Plantilla", icon: FilePenLine }, { id: "evento", label: "Datos del evento", icon: Settings2 },
+];
+const statusLabel: Record<InvitationStatus, string> = { sent: "Enviada", pending: "Pendiente", confirmed: "Confirmada", declined: "No asistirá" };
 
 export default function AdminPage() {
+  const [section, setSection] = useState<Section>("resumen");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [stats, setStats] = useState<InvitationStats | null>(null);
+  const [event, setEvent] = useState<EventDetails>(defaultEventDetails);
   const [loading, setLoading] = useState(true);
-
-  // Filtros y búsqueda
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  // Estado de copiado
-  const [copiedToken, setCopiedToken] = useState<string | null>(null);
-
-  // Modal para agregar nueva invitación
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newGuestName, setNewGuestName] = useState("");
-  const [newAllowedGuests, setNewAllowedGuests] = useState<number>(2);
-  const [newTokenSlug, setNewTokenSlug] = useState("");
-  const [addLoading, setAddLoading] = useState(false);
-
-  // Toast general
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [list, calculatedStats] = await Promise.all([
-        invitationService.getAllInvitations(),
-        invitationService.getStats(),
-      ]);
-      setInvitations(list);
-      setStats(calculatedStats);
-    } catch (err) {
-      console.error("Error al cargar datos administrativos:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | InvitationStatus>("all");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [allowedGuests, setAllowedGuests] = useState(2);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(null), 2600); };
+  const load = async () => { const [list, summary, eventDetails] = await Promise.all([invitationService.getAllInvitations(), invitationService.getStats(), invitationService.getEventDetails()]); setInvitations(list); setStats(summary); setEvent(eventDetails); setLoading(false); };
   useEffect(() => {
-    loadData();
+    void Promise.all([invitationService.getAllInvitations(), invitationService.getStats(), invitationService.getEventDetails()]).then(([list, summary, eventDetails]) => {
+      setInvitations(list); setStats(summary); setEvent(eventDetails); setLoading(false);
+    });
   }, []);
+  const filtered = useMemo(() => invitations.filter((inv) => `${inv.guestName} ${inv.token}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || inv.status === filter)), [invitations, query, filter]);
+  const createInvitation = async (e: FormEvent) => { e.preventDefault(); await invitationService.createInvitation({ guestName, allowedGuests }); setGuestName(""); setAllowedGuests(2); setCreateOpen(false); await load(); notify("Invitación creada y enlace listo para compartir"); };
+  const copyLink = async (token: string) => { await navigator.clipboard.writeText(`${window.location.origin}/invitacion/${token}`); setCopied(token); notify("Enlace privado copiado"); window.setTimeout(() => setCopied(null), 1800); };
+  const saveEvent = async (e: FormEvent) => { e.preventDefault(); await invitationService.updateEventDetails(event); notify("Cambios guardados localmente"); };
+  const selectSection = (value: Section) => { setSection(value); setMenuOpen(false); };
+  const previewInvitation = invitations[0];
 
-  const handleCopyLink = async (token: string) => {
-    try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const url = `${origin}/invitacion/${token}`;
-      await navigator.clipboard.writeText(url);
-      setCopiedToken(token);
-      showToast("¡Enlace copiado al portapapeles!");
-      setTimeout(() => setCopiedToken(null), 2500);
-    } catch {
-      showToast("No se pudo copiar el enlace.");
-    }
-  };
-
-  const handleResetData = async () => {
-    if (
-      window.confirm(
-        "¿Restablecer los datos de ejemplo a su estado original? Se perderán las confirmaciones de prueba guardadas en este navegador."
-      )
-    ) {
-      await invitationService.resetToDefaults();
-      await loadData();
-      showToast("Datos restablecidos a los valores predeterminados.");
-    }
-  };
-
-  const handleCreateInvitation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGuestName.trim()) return;
-
-    setAddLoading(true);
-    try {
-      await invitationService.createInvitation({
-        guestName: newGuestName.trim(),
-        allowedGuests: Number(newAllowedGuests),
-        token: newTokenSlug.trim() || undefined,
-      });
-
-      setNewGuestName("");
-      setNewAllowedGuests(2);
-      setNewTokenSlug("");
-      setIsAddModalOpen(false);
-      await loadData();
-      showToast("¡Invitación creada con éxito!");
-    } catch (err) {
-      console.error(err);
-      showToast("Error al crear la invitación.");
-    } finally {
-      setAddLoading(false);
-    }
-  };
-
-  const filteredInvitations = invitations.filter((inv) => {
-    const matchesSearch =
-      inv.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.token.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (inv.attendees &&
-        inv.attendees.some((att) =>
-          att.toLowerCase().includes(searchQuery.toLowerCase())
-        ));
-
-    if (statusFilter === "all") return matchesSearch;
-    if (statusFilter === "pending")
-      return matchesSearch && (inv.status === "pending" || inv.status === "sent");
-    return matchesSearch && inv.status === statusFilter;
-  });
-
-  const getStatusBadge = (status: InvitationStatus) => {
-    switch (status) {
-      case "confirmed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Confirmada</span>
-          </span>
-        );
-      case "declined":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-950/70 text-rose-300 border border-rose-500/30">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>Rechazada</span>
-          </span>
-        );
-      case "sent":
-      case "pending":
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#441328]/70 text-[#F3E5AB] border border-[#D4AF37]/30">
-            <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>Pendiente</span>
-          </span>
-        );
-    }
-  };
-
-  return (
-    <div className="relative min-h-screen bg-[#14040A] text-[#FAF6F0] selection:bg-[#cca044]/30 pb-20">
-      <FairyDust />
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full bg-[#2C0B18] text-[#F3E5AB] border border-[#D4AF37]/50 shadow-2xl text-xs font-medium animate-in fade-in flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Cabecera Administrativa */}
-      <header className="sticky top-0 z-30 backdrop-blur-md bg-[#18050E]/90 border-b border-[#D4AF37]/20 px-4 py-4">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#441328] border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37]">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="font-serif-cormorant text-2xl font-bold text-[#FAF6F0] flex items-center gap-2">
-                <span>Panel de Control de Invitaciones</span>
-                <span className="text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#F3E5AB] border border-[#D4AF37]/30 font-sans font-semibold">
-                  MVP Demo
-                </span>
-              </h1>
-              <p className="text-xs text-[#EFC7CF]/80">
-                Gestión de cupos, confirmaciones y enlaces para los Quince Años de Valentina Sofía
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              type="button"
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#D7B56E] to-[#B3832B] text-[#14040A] text-xs font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nueva Invitación</span>
-            </button>
-
-            <button
-              onClick={handleResetData}
-              type="button"
-              title="Restablecer datos de ejemplo"
-              className="p-2 rounded-full bg-[#2C0B18] border border-[#D4AF37]/30 text-[#EFC7CF] hover:text-[#FAF6F0] hover:bg-[#441328] transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-
-            <Link
-              href="/"
-              className="px-3.5 py-2 rounded-full bg-[#18040C] border border-[#D4AF37]/20 text-xs text-[#EFC7CF] hover:text-[#FAF6F0] hover:border-[#D4AF37]/40 transition-colors"
-            >
-              Ver Portada
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-8 relative z-10 space-y-8">
-        {/* Aviso de entorno de demostración */}
-        <div className="p-4 rounded-2xl bg-[#2C0B18]/70 border border-[#D4AF37]/30 flex items-start sm:items-center justify-between gap-3 text-xs text-[#EFC7CF]">
-          <div className="flex items-start sm:items-center gap-3">
-            <ShieldAlert className="w-5 h-5 text-[#D4AF37] shrink-0 mt-0.5 sm:mt-0" />
-            <div>
-              <p className="font-semibold text-[#F3E5AB]">
-                Modo Demostración Activo (Sin Backend Permanente Conectado)
-              </p>
-              <p className="text-[#FAF6F0]/80">
-                Las confirmaciones y nuevas invitaciones se guardan localmente en tu sesión. Para producción, el servicio <code>IInvitationService</code> está preparado para vincularse directamente con Supabase o Google Sheets.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Tarjetas KPI de Resumen */}
-        {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            <div className="glass-panel p-4 rounded-2xl">
-              <span className="text-[11px] uppercase tracking-wider text-[#EFC7CF] font-medium block">
-                Total Invitaciones
-              </span>
-              <p className="font-display-cinzel text-2xl sm:text-3xl font-bold text-gold-gradient mt-1">
-                {stats.totalInvitations}
-              </p>
-              <span className="text-[10px] text-[#FAF6F0]/60 mt-1 block">Familias registradas</span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl">
-              <span className="text-[11px] uppercase tracking-wider text-[#EFC7CF] font-medium block">
-                Cupo Total
-              </span>
-              <p className="font-display-cinzel text-2xl sm:text-3xl font-bold text-[#FAF6F0] mt-1">
-                {stats.totalAllowedGuests}
-              </p>
-              <span className="text-[10px] text-[#FAF6F0]/60 mt-1 block">Pases autorizados</span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl border-emerald-500/30">
-              <span className="text-[11px] uppercase tracking-wider text-emerald-300 font-medium block">
-                Confirmados
-              </span>
-              <p className="font-display-cinzel text-2xl sm:text-3xl font-bold text-emerald-400 mt-1">
-                {stats.totalConfirmedGuests}
-              </p>
-              <span className="text-[10px] text-emerald-200/70 mt-1 block">
-                {stats.confirmedInvitations} invitaciones listas
-              </span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl border-rose-500/25">
-              <span className="text-[11px] uppercase tracking-wider text-rose-300 font-medium block">
-                Declinados
-              </span>
-              <p className="font-display-cinzel text-2xl sm:text-3xl font-bold text-rose-400 mt-1">
-                {stats.totalDeclinedGuests}
-              </p>
-              <span className="text-[10px] text-rose-200/70 mt-1 block">
-                {stats.declinedInvitations} no podrán asistir
-              </span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl col-span-2 lg:col-span-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-medium block">
-                Pendientes
-              </span>
-              <p className="font-display-cinzel text-2xl sm:text-3xl font-bold text-[#F3E5AB] mt-1">
-                {stats.pendingInvitations}
-              </p>
-              <span className="text-[10px] text-[#FAF6F0]/60 mt-1 block">Sin respuesta aún</span>
-            </div>
-          </div>
-        )}
-
-        {/* Barra de Filtros y Búsqueda */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre de persona, familia o token..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[#1D060F] border border-[#D4AF37]/30 text-xs sm:text-sm text-[#FAF6F0] placeholder-[#FAF6F0]/30 focus:outline-none focus:border-[#D4AF37] transition-colors"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#D4AF37] shrink-0" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3.5 py-2.5 rounded-2xl bg-[#1D060F] border border-[#D4AF37]/30 text-xs sm:text-sm text-[#FAF6F0] focus:outline-none focus:border-[#D4AF37] transition-colors"
-            >
-              <option value="all">Todos los estados ({invitations.length})</option>
-              <option value="confirmed">Confirmadas</option>
-              <option value="pending">Pendientes</option>
-              <option value="declined">Rechazadas</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Tabla / Lista de Invitaciones */}
-        <div className="glass-panel rounded-3xl overflow-hidden border-[#D4AF37]/30">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#2C0B18]/80 text-[#D4AF37] uppercase tracking-wider font-semibold border-b border-[#D4AF37]/20">
-                <tr>
-                  <th className="py-3.5 px-4 sm:px-6">Persona o Familia</th>
-                  <th className="py-3.5 px-4">Cupo / Asistentes</th>
-                  <th className="py-3.5 px-4">Estado</th>
-                  <th className="py-3.5 px-4">Respuesta</th>
-                  <th className="py-3.5 px-4 text-right">Enlace & Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#D4AF37]/10">
-                {filteredInvitations.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-10 text-center text-[#EFC7CF]/70">
-                      No se encontraron invitaciones que coincidan con la búsqueda.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredInvitations.map((inv) => (
-                    <tr
-                      key={inv.id}
-                      className="hover:bg-[#441328]/30 transition-colors group"
-                    >
-                      <td className="py-4 px-4 sm:px-6">
-                        <div className="font-semibold text-sm text-[#FAF6F0]">
-                          {inv.guestName}
-                        </div>
-                        <div className="text-[11px] text-[#FAF6F0]/50 font-mono mt-0.5">
-                          token: {inv.token}
-                        </div>
-                        {inv.attendees && inv.attendees.length > 0 && (
-                          <div className="text-[11px] text-emerald-300/80 mt-1">
-                            Asistentes: {inv.attendees.join(", ")}
-                          </div>
-                        )}
-                        {inv.note && (
-                          <div className="text-[11px] italic text-[#EFC7CF]/80 mt-1 max-w-xs truncate">
-                            «{inv.note}»
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 font-medium text-sm">
-                          <span
-                            className={
-                              inv.status === "confirmed"
-                                ? "text-emerald-400 font-bold"
-                                : "text-[#FAF6F0]"
-                            }
-                          >
-                            {inv.confirmedGuests}
-                          </span>
-                          <span className="text-[#FAF6F0]/50">/</span>
-                          <span>{inv.allowedGuests}</span>
-                          <span className="text-[10px] text-[#FAF6F0]/50">pases</span>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        {getStatusBadge(inv.status)}
-                      </td>
-
-                      <td className="py-4 px-4 whitespace-nowrap text-[11px] text-[#EFC7CF]/80">
-                        {inv.respondedAt ? (
-                          new Date(inv.respondedAt).toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        ) : (
-                          <span className="text-[#FAF6F0]/40">Sin respuesta</span>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleCopyLink(inv.token)}
-                            type="button"
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#1D060F] hover:bg-[#2C0B18] text-[#F3E5AB] border border-[#D4AF37]/30 transition-colors text-xs font-medium"
-                            title="Copiar enlace personalizado"
-                          >
-                            {copiedToken === inv.token ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                <span className="text-emerald-300">¡Copiado!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span>Copiar</span>
-                              </>
-                            )}
-                          </button>
-
-                          <Link
-                            href={`/invitacion/${inv.token}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 rounded-full bg-[#1D060F] hover:bg-[#441328] text-[#D4AF37] hover:text-[#FFF3D6] border border-[#D4AF37]/30 transition-colors"
-                            title="Abrir invitación en nueva pestaña"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+  return <div className="admin-shell">
+    <aside className={`admin-sidebar ${menuOpen ? "is-open" : ""}`}>
+      <div className="brand"><span className="brand-mark"><Sparkles size={18}/></span><div><strong>Invita</strong><small>Estudio de eventos</small></div></div>
+      <nav aria-label="Navegación principal">{nav.map((item) => <button key={item.id} onClick={() => selectSection(item.id)} className={section === item.id ? "active" : ""}><item.icon size={18}/><span>{item.label}</span></button>)}</nav>
+      <div className="sidebar-note"><span>Modo local</span><p>Los datos se guardan en este navegador. Prisma está listo para conectar producción.</p></div>
+      <div className="sidebar-profile"><span>SL</span><div><strong>Sergio Luis</strong><small>Administrador</small></div><MoreHorizontal size={18}/></div>
+    </aside>
+    <div className="admin-main">
+      <header className="admin-header"><button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"><Menu size={21}/></button><div><p>XV años de {event.celebrantName}</p><span>Panel administrativo</span></div><div className="header-actions">{previewInvitation && <Link href={`/invitacion/${previewInvitation.token}`} target="_blank" className="button secondary"><Eye size={16}/> Ver invitación</Link>}<button className="button primary" onClick={() => setCreateOpen(true)}><Plus size={17}/> Nueva invitación</button></div></header>
+      <main className="admin-content">
+        {loading ? <div className="admin-loading"><span/><p>Preparando tu panel…</p></div> : null}
+        {!loading && section === "resumen" && <><PageHeading eyebrow="Vista general" title="Todo listo para tu celebración" text="Controla los cupos, las respuestas y tus enlaces privados desde un solo lugar." action={<button className="button primary" onClick={() => setCreateOpen(true)}><Plus size={17}/> Crear invitación</button>}/><div className="stat-grid"><Stat icon={Users} label="Invitados autorizados" value={stats?.totalAllowedGuests ?? 0} note={`${stats?.totalInvitations ?? 0} invitaciones`} tone="sand"/><Stat icon={CheckCircle2} label="Asistentes confirmados" value={stats?.totalConfirmedGuests ?? 0} note={`${stats?.confirmedInvitations ?? 0} respuestas`} tone="green"/><Stat icon={Clock3} label="Pendientes" value={stats?.pendingInvitations ?? 0} note="Por responder" tone="blue"/><Stat icon={XCircle} label="No asistirán" value={stats?.declinedInvitations ?? 0} note="Invitaciones" tone="rose"/></div><div className="dashboard-grid"><section className="panel"><PanelTitle title="Actividad de invitaciones" text="Estado actual de tus enlaces" action={<button onClick={() => setSection("invitaciones")}>Ver todas <ChevronRight size={15}/></button>}/><InvitationTable items={invitations.slice(0,5)} onCopy={copyLink} copied={copied}/></section><section className="panel quick-panel"><PanelTitle title="Tu evento" text="Información visible para los invitados"/><div className="event-mini"><div className="event-date"><strong>{new Date(event.date).getDate()}</strong><span>{new Date(event.date).toLocaleDateString("es", {month:"short"})}</span></div><div><strong>{event.venueName}</strong><span><CalendarDays size={14}/>{event.time}</span><span><MapPin size={14}/>{event.venueAddress}</span></div></div><button className="link-button" onClick={() => setSection("evento")}>Editar información <ChevronRight size={15}/></button><div className="preview-card"><span>PLANTILLA ACTIVA</span><h3>Una noche<br/><em>inolvidable</em></h3><p>Diseño “Noche romántica”</p><button onClick={() => setSection("plantilla")}><FilePenLine size={15}/> Personalizar</button></div></section></div></>}
+        {!loading && section === "invitaciones" && <><PageHeading eyebrow="Gestión" title="Invitaciones" text="Crea un enlace privado por persona o familia y controla su respuesta." action={<button className="button primary" onClick={() => setCreateOpen(true)}><Plus size={17}/> Nueva invitación</button>}/><section className="panel"><div className="toolbar"><label className="search"><Search size={17}/><input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Buscar invitado o token…"/></label><select value={filter} onChange={(e)=>setFilter(e.target.value as typeof filter)}><option value="all">Todos los estados</option><option value="pending">Pendientes</option><option value="confirmed">Confirmadas</option><option value="declined">No asistirán</option></select></div><InvitationTable items={filtered} onCopy={copyLink} copied={copied}/></section></>}
+        {!loading && section === "plantilla" && <><PageHeading eyebrow="Diseño" title="Plantilla de invitación" text="Revisa cómo se verá el enlace que recibirán tus invitados." action={previewInvitation ? <Link href={`/invitacion/${previewInvitation.token}`} target="_blank" className="button primary"><ExternalLink size={16}/> Abrir completa</Link> : null}/><div className="template-layout"><section className="panel template-settings"><h2>Estilo activo</h2><div className="theme-option selected"><div className="theme-swatch"/><div><strong>Noche romántica</strong><span>Borgoña, champagne y marfil</span></div><Check size={18}/></div><div className="form-stack"><label>Título de la celebración<input value={event.celebrantTitle} onChange={(e)=>setEvent({...event, celebrantTitle:e.target.value})}/></label><label>Mensaje de bienvenida<textarea rows={5} value={event.welcomeMessage} onChange={(e)=>setEvent({...event, welcomeMessage:e.target.value})}/></label><button className="button primary" onClick={saveEvent}>Guardar contenido</button></div></section><InvitationPreview event={event} guest={previewInvitation?.guestName ?? "Familia invitada"}/></div></>}
+        {!loading && section === "evento" && <><PageHeading eyebrow="Configuración" title="Datos del evento" text="Esta información se actualiza en todas las invitaciones."/><form className="panel event-form" onSubmit={saveEvent}><div className="form-section"><h2>Celebración</h2><div className="form-grid"><Field label="Nombre de la quinceañera" value={event.celebrantName} onChange={(v)=>setEvent({...event, celebrantName:v})}/><Field label="Fecha y hora" type="datetime-local" value={event.date.slice(0,16)} onChange={(v)=>setEvent({...event, date:v})}/><Field label="Nombre del lugar" value={event.venueName} onChange={(v)=>setEvent({...event, venueName:v})}/><Field label="Hora para mostrar" value={event.time} onChange={(v)=>setEvent({...event, time:v})}/><label className="wide">Dirección<input value={event.venueAddress} onChange={(e)=>setEvent({...event, venueAddress:e.target.value})}/></label><Field label="Código de vestimenta" value={event.dressCode} onChange={(v)=>setEvent({...event, dressCode:v})}/><Field label="Fecha límite de RSVP" value={event.rsvpDeadline} onChange={(v)=>setEvent({...event, rsvpDeadline:v})}/></div></div><div className="form-footer"><span>Guardado local durante esta etapa</span><button className="button primary" type="submit">Guardar cambios</button></div></form></>}
       </main>
-
-      {/* Modal para Crear Nueva Invitación */}
-      {isAddModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in"
-        >
-          <div className="w-full max-w-md rounded-3xl glass-panel p-6 sm:p-7 border-[#D4AF37]/40 shadow-2xl relative">
-            <h3 className="font-serif-cormorant text-2xl font-bold text-[#FAF6F0] mb-1">
-              Nueva Invitación Personalizada
-            </h3>
-            <p className="text-xs text-[#EFC7CF] mb-4">
-              Crea un enlace exclusivo para una persona o familia.
-            </p>
-
-            <form onSubmit={handleCreateInvitation} className="space-y-4">
-              <div>
-                <label className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold block mb-1">
-                  Nombre de la Persona o Familia
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Familia Morales Castro"
-                  value={newGuestName}
-                  onChange={(e) => {
-                    setNewGuestName(e.target.value);
-                    if (!newTokenSlug) {
-                      // Sugerir slug automático
-                      const auto = e.target.value
-                        .toLowerCase()
-                        .normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .replace(/[^a-z0-9]+/g, "-")
-                        .replace(/(^-|-$)/g, "");
-                      setNewTokenSlug(auto);
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#18040C] border border-[#D4AF37]/30 text-xs sm:text-sm text-[#FAF6F0] focus:outline-none focus:border-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold block mb-1">
-                  Cupo de Asistentes Permitido
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  required
-                  value={newAllowedGuests}
-                  onChange={(e) => setNewAllowedGuests(parseInt(e.target.value) || 1)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#18040C] border border-[#D4AF37]/30 text-xs sm:text-sm text-[#FAF6F0] focus:outline-none focus:border-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold block mb-1">
-                  Identificador / Token URL (Opcional)
-                </label>
-                <div className="flex items-center rounded-xl bg-[#18040C] border border-[#D4AF37]/30 px-3 py-2 text-xs">
-                  <span className="text-[#FAF6F0]/40 select-none">/invitacion/</span>
-                  <input
-                    type="text"
-                    placeholder="familia-morales"
-                    value={newTokenSlug}
-                    onChange={(e) => setNewTokenSlug(e.target.value)}
-                    className="w-full bg-transparent text-[#FAF6F0] focus:outline-none font-mono text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 flex flex-col gap-2">
-                <button
-                  type="submit"
-                  disabled={addLoading}
-                  className="w-full py-3 rounded-full bg-gradient-to-r from-[#D7B56E] to-[#B3832B] text-[#14040A] font-bold text-xs sm:text-sm tracking-wide shadow-lg hover:brightness-110 disabled:opacity-50 transition-all"
-                >
-                  {addLoading ? "Creando..." : "Generar Invitación"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="py-2 text-xs text-[#EFC7CF]/70 hover:text-[#FAF6F0] transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
-  );
+    {menuOpen && <button className="sidebar-backdrop" onClick={()=>setMenuOpen(false)} aria-label="Cerrar menú"/>}{toast && <div className="toast"><CheckCircle2 size={18}/>{toast}</div>}
+    {createOpen && <div className="modal-backdrop"><form className="modal-card" onSubmit={createInvitation}><button type="button" className="modal-close" onClick={()=>setCreateOpen(false)}><X size={18}/></button><span className="modal-icon"><Link2 size={20}/></span><h2>Nueva invitación</h2><p>Genera un enlace privado para una persona o familia.</p><label>Nombre del invitado o familia<input autoFocus required value={guestName} onChange={(e)=>setGuestName(e.target.value)} placeholder="Ej. Familia Mendoza"/></label><label>Cupo autorizado<input type="number" min={1} max={30} required value={allowedGuests} onChange={(e)=>setAllowedGuests(Number(e.target.value))}/></label><div className="modal-actions"><button type="button" className="button secondary" onClick={()=>setCreateOpen(false)}>Cancelar</button><button className="button primary" type="submit"><Sparkles size={16}/> Generar enlace</button></div></form></div>}
+  </div>;
 }
+
+function PageHeading({eyebrow,title,text,action}:{eyebrow:string;title:string;text:string;action?:React.ReactNode}) { return <div className="page-heading"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{text}</p></div>{action}</div>; }
+function Stat({icon:Icon,label,value,note,tone}:{icon:typeof Users;label:string;value:number;note:string;tone:string}) { return <article className="stat-card"><span className={`stat-icon ${tone}`}><Icon size={19}/></span><div><p>{label}</p><strong>{value}</strong><span>{note}</span></div></article>; }
+function PanelTitle({title,text,action}:{title:string;text:string;action?:React.ReactNode}) { return <div className="panel-title"><div><h2>{title}</h2><p>{text}</p></div>{action}</div>; }
+function StatusBadge({status}:{status:InvitationStatus}) { return <span className={`status ${status}`}>{status === "confirmed" ? <CheckCircle2 size={13}/> : status === "declined" ? <XCircle size={13}/> : <Clock3 size={13}/>} {statusLabel[status]}</span>; }
+function InvitationTable({items,onCopy,copied}:{items:Invitation[];onCopy:(token:string)=>void;copied:string|null}) { return <div className="table-scroll"><table><thead><tr><th>Invitado</th><th>Cupo</th><th>Estado</th><th>Respuesta</th><th/></tr></thead><tbody>{items.length === 0 ? <tr><td colSpan={5} className="empty">No encontramos invitaciones con esos filtros.</td></tr> : items.map((inv)=><tr key={inv.id}><td><div className="guest-cell"><span>{inv.guestName.charAt(0)}</span><div><strong>{inv.guestName}</strong><small>/invitacion/{inv.token}</small></div></div></td><td>{inv.confirmedGuests} / {inv.allowedGuests}</td><td><StatusBadge status={inv.status}/></td><td>{inv.respondedAt ? new Date(inv.respondedAt).toLocaleDateString("es",{day:"2-digit",month:"short"}) : "—"}</td><td><div className="row-actions"><button onClick={()=>onCopy(inv.token)} title="Copiar enlace">{copied === inv.token ? <Check size={16}/> : <Clipboard size={16}/>}</button><Link href={`/invitacion/${inv.token}`} target="_blank" title="Abrir invitación"><ExternalLink size={16}/></Link></div></td></tr>)}</tbody></table></div>; }
+function Field({label,value,onChange,type="text"}:{label:string;value:string;onChange:(value:string)=>void;type?:string}) { return <label>{label}<input type={type} value={value} onChange={(e)=>onChange(e.target.value)}/></label>; }
+function InvitationPreview({event,guest}:{event:EventDetails;guest:string}) { return <section className="phone-stage"><div className="phone"><div className="phone-bar"/><div className="phone-screen"><div className="preview-stars">✦　·　✧</div><span>TE INVITAMOS A CELEBRAR</span><h2>{event.celebrantTitle}</h2><div className="preview-name">{event.celebrantName}</div><p>Con mucho cariño, invitamos a</p><strong>{guest}</strong><div className="preview-divider">◇</div><small>{new Date(event.date).toLocaleDateString("es",{day:"numeric",month:"long",year:"numeric"})} · {event.time}</small><button>Ver invitación</button></div></div><p>Vista previa móvil</p></section>; }

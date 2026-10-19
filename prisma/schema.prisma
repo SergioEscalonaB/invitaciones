@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InvitationStatus {
+  SENT
+  PENDING
+  CONFIRMED
+  DECLINED
+}
+
+model Event {
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  celebrantName    String
+  celebrantTitle   String       @default("Mis Quince Años")
+  celebrantAge     Int          @default(15)
+  date             DateTime
+  displayTime      String
+  venueName        String
+  venueAddress     String
+  googleMapsUrl    String?
+  dressCode        String?
+  dressCodeDetails String?
+  welcomeMessage   String       @db.Text
+  emotionalQuote   String?      @db.Text
+  rsvpDeadline     String?
+  contactPhone     String?
+  invitations      Invitation[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Invitation {
+  id              String           @id @default(cuid())
+  token           String           @unique @default(cuid())
+  guestName       String
+  allowedGuests   Int
+  status          InvitationStatus @default(PENDING)
+  confirmedGuests Int              @default(0)
+  attendees       String[]
+  note            String?          @db.Text
+  sentAt          DateTime?
+  respondedAt     DateTime?
+  eventId         String
+  event           Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([eventId, status])
+}

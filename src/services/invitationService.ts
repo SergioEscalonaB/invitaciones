@@ -8,6 +8,7 @@ import {
 import { defaultEventDetails, defaultMockInvitations } from "@/data/event";
 
 const STORAGE_KEY = "quinceanera_invitations_v1";
+const EVENT_STORAGE_KEY = "quinceanera_event_v1";
 
 /**
  * Interfaz formal para el servicio de invitaciones.
@@ -18,6 +19,7 @@ const STORAGE_KEY = "quinceanera_invitations_v1";
  */
 export interface IInvitationService {
   getEventDetails(): Promise<EventDetails>;
+  updateEventDetails(data: EventDetails): Promise<EventDetails>;
   getInvitationByToken(token: string): Promise<Invitation | null>;
   confirmRsvp(token: string, payload: RsvpConfirmationPayload): Promise<Invitation>;
   declineRsvp(token: string, payload?: RsvpDeclinePayload): Promise<Invitation>;
@@ -62,8 +64,18 @@ class MockInvitationService implements IInvitationService {
   }
 
   async getEventDetails(): Promise<EventDetails> {
-    // Retorna configuración del evento
+    if (this.isBrowser()) {
+      const stored = window.localStorage.getItem(EVENT_STORAGE_KEY);
+      if (stored) return JSON.parse(stored) as EventDetails;
+    }
     return { ...defaultEventDetails };
+  }
+
+  async updateEventDetails(data: EventDetails): Promise<EventDetails> {
+    if (this.isBrowser()) {
+      window.localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(data));
+    }
+    return { ...data };
   }
 
   async getInvitationByToken(token: string): Promise<Invitation | null> {
@@ -195,6 +207,7 @@ class MockInvitationService implements IInvitationService {
   async resetToDefaults(): Promise<void> {
     if (this.isBrowser()) {
       window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(EVENT_STORAGE_KEY);
     }
   }
 }

@@ -25,8 +25,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Invitación de Quince Años | Valentina Sofía",
-  description: "Una noche mágica para celebrar los quince años de Valentina Sofía.",
+  title: "Atelier de Invitaciones",
+  description: "Gestión de invitaciones digitales y confirmaciones.",
   icons: {
     icon: "/favicon.ico",
   },
@@ -42,7 +42,7 @@ export default function RootLayout({
       lang="es"
       className={`${cormorant.variable} ${cinzel.variable} ${jakarta.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-[#14040A] text-[#FAF6F0] selection:bg-[#cca044]/30 selection:text-[#FDFBF7]">
+      <body className="min-h-full flex flex-col font-sans selection:bg-[#eadfd2] selection:text-[#292521]">
         {children}
       </body>
     </html>
