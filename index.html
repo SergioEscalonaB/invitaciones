@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#102119">
   <title>La noche de Valentina · Mis quince</title>
   <meta name="description" content="Una invitación de quince años contada como una pequeña historia.">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Italiana&display=swap" rel="stylesheet">
   <style>
     :root{--night:#102119;--forest:#1b3327;--paper:#f7f0e5;--sand:#eadcc9;--ink:#273a30;--gold:#cdae72;--gold-light:#ecd8aa;--rose:#bd817e;--serif:"Italiana",Georgia,serif;--sans:"DM Sans",Arial,sans-serif}
-    *{box-sizing:border-box}html,body{width:100%;height:100%}body{margin:0;overflow:hidden;color:var(--ink);background:var(--night);font-family:var(--sans);-webkit-font-smoothing:antialiased}button,select,textarea{font:inherit}button{color:inherit;-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;touch-action:none}body{margin:0;overflow:hidden;color:var(--ink);background:var(--night);font-family:var(--sans);-webkit-font-smoothing:antialiased}button,select,textarea{font:inherit}button{color:inherit;-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
     .presentation{position:relative;width:100%;height:100dvh;isolation:isolate}.presentation:before{content:"";position:fixed;z-index:20;pointer-events:none;inset:14px;border:1px solid rgba(205,174,114,.34)}
     .scene{position:absolute;inset:0;z-index:0;display:grid;place-items:center;padding:clamp(74px,10vh,104px) clamp(28px,7vw,110px) clamp(118px,16vh,150px);overflow:hidden;visibility:hidden;opacity:0;transform:translateX(6%);transition:opacity .65s ease,transform .7s cubic-bezier(.2,.7,.2,1),visibility .7s}.scene.active{z-index:2;visibility:visible;opacity:1;transform:none}.scene.leaving{visibility:visible;opacity:0;transform:translateX(-5%)}
     .dark{color:#fffaf0;background:radial-gradient(circle at 50% 45%,#284536 0,var(--night) 64%)}.light{background:linear-gradient(135deg,var(--paper),#fbf7ef 48%,var(--sand))}.rose{background:linear-gradient(145deg,#f5ebe2,#e9d4cc)}
@@ -94,7 +94,7 @@
     }
     previous.addEventListener("click",()=>show(current-1));next.addEventListener("click",()=>show(current+1));previous.disabled=true;
     document.addEventListener("keydown",event=>{if(event.target.closest("button,a,select,textarea"))return;if(["ArrowRight","PageDown"," ","Enter"].includes(event.key)){event.preventDefault();show(current+1)}if(["ArrowLeft","PageUp"].includes(event.key)){event.preventDefault();show(current-1)}});
-    document.addEventListener("touchstart",event=>{touchX=event.changedTouches[0].clientX},{passive:true});document.addEventListener("touchend",event=>{const d=event.changedTouches[0].clientX-touchX;if(Math.abs(d)>55)show(current+(d<0?1:-1))},{passive:true});
+    document.addEventListener("touchstart",event=>{touchX=event.changedTouches[0].clientX},{passive:true});document.addEventListener("touchend",event=>{const d=event.changedTouches[0].clientX-touchX;if(Math.abs(d)>55)show(current+(d<0?1:-1))},{passive:true});document.addEventListener("dblclick",event=>event.preventDefault());
 
     const mapLink=document.getElementById("mapLink");if(DEMO.mapa)mapLink.href=DEMO.mapa;else mapLink.addEventListener("click",event=>{event.preventDefault();toast("Aquí irá el enlace a la ubicación.")});
     const backdrop=document.getElementById("backdrop"),modal=document.getElementById("modal");
