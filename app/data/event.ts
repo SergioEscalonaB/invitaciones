@@ -5,17 +5,17 @@ import { EventDetails, Invitation } from "@/types/invitation";
  * Modifica estos valores para personalizar los datos de la quinceañera y la fiesta.
  */
 export const defaultEventDetails: EventDetails = {
-  celebrantName: "Valentina Sofía",
-  celebrantTitle: "Mis Quince Años",
+  celebrantName: "Valentina",
+  celebrantTitle: "Mis quince",
   celebrantAge: 15,
-  // Fecha en diciembre (formato ISO para cálculos exactos de cuenta regresiva)
-  date: "2026-12-19T19:30:00",
-  time: "7:30 PM",
-  venueName: "Hacienda Los Rosales & Salón Cristal",
-  venueAddress: "Av. Las Orquídeas #1540, Jardines del Pedregal, Ciudad de México",
-  googleMapsUrl: "https://maps.google.com/?q=Av.+Las+Orquideas+1540+Jardines+del+Pedregal",
+  date: "2026-12-12T18:00:00",
+  time: "6:00 p. m.",
+  venueName: "Jardín de los Olivos",
+  venueAddress: "Jardín de los Olivos",
+  googleMapsUrl: "",
   dressCode: "Rigurosa Etiqueta / Formal Elegante",
-  dressCodeDetails: "Vestido largo de noche y traje formal o smoking. Agradecemos reservar los tonos borgoña y ciruela exclusivamente para la quinceañera.",
+  dressCodeDetails:
+    "Vestido largo de noche y traje formal o smoking. Agradecemos reservar los tonos borgoña y ciruela exclusivamente para la quinceañera.",
   welcomeMessage:
     "Hay momentos en la vida que se guardan para siempre en el corazón, y este es uno de los más soñados. Te espero para compartir risas, música y una noche inolvidable.",
   emotionalQuote:
@@ -41,7 +41,8 @@ export const defaultEventDetails: EventDetails = {
     {
       time: "8:45 PM",
       title: "Entrada Real y Vals",
-      description: "El tradicional vals con los padres, chambelanes y sorpresa especial",
+      description:
+        "El tradicional vals con los padres, chambelanes y sorpresa especial",
       iconName: "music",
     },
     {
@@ -62,7 +63,8 @@ export const defaultEventDetails: EventDetails = {
     title: "Lluvia de Sobres",
     description:
       "Tu presencia es nuestro mejor y más valioso regalo. Si deseas tener un detalle con Valentina para su viaje soñado, dispondremos de un buzón de sobres en la entrada del salón.",
-    bankDetails: "Opcional transferencia: CLABE 0123 4567 8901 2345 67 (Titular: Valentina Sofía / Cuenta de Ahorro)",
+    bankDetails:
+      "Opcional transferencia: CLABE 0123 4567 8901 2345 67 (Titular: Valentina Sofía / Cuenta de Ahorro)",
   },
   rsvpDeadline: "30 de Noviembre de 2026",
   contactPhone: "+52 55 1234 5678",
@@ -75,7 +77,7 @@ export const defaultEventDetails: EventDetails = {
 export const defaultMockInvitations: Omit<Invitation, "token">[] = [
   {
     id: "inv-001",
-    guestName: "Familia Mendoza Pérez",
+    guestName: "Familia García",
     allowedGuests: 4,
     status: "pending",
     confirmedGuests: 0,

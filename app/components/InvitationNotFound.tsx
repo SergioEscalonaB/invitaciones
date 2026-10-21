@@ -25,14 +25,21 @@ export function InvitationNotFound() {
         </h1>
 
         <p className="text-sm text-[#EFC7CF] leading-relaxed">
-          No pudimos localizar una invitación asociada a este enlace. Puede que el vínculo haya sido escrito de forma incompleta o ya no esté disponible.
+          No pudimos localizar una invitación asociada a este enlace. Puede que
+          el vínculo haya sido escrito de forma incompleta o ya no esté
+          disponible.
         </p>
 
         <div className="p-4 rounded-2xl bg-[#18040C]/80 border border-[#D4AF37]/15 text-xs text-[#EFC7CF]/80 text-left">
           <p className="font-medium text-[#FAF6F0] mb-1">¿Qué puedes hacer?</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Verifica haber abierto el enlace completo recibido por mensaje.</li>
-            <li>Ponte en contacto con la familia anfitriona para confirmar tu enlace personalizado.</li>
+            <li>
+              Verifica haber abierto el enlace completo recibido por mensaje.
+            </li>
+            <li>
+              Ponte en contacto con la familia anfitriona para confirmar tu
+              enlace personalizado.
+            </li>
           </ul>
         </div>
 

@@ -35,12 +35,17 @@ export function DeclineModal({
       const payload: RsvpDeclinePayload = {
         note: note.trim(),
       };
-      const updated = await invitationService.declineRsvp(invitation.token, payload);
+      const updated = await invitationService.declineRsvp(
+        invitation.token,
+        payload,
+      );
       onSuccess(updated);
       onClose();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "No fue posible registrar tu respuesta. Intenta de nuevo.";
+        err instanceof Error
+          ? err.message
+          : "No fue posible registrar tu respuesta. Intenta de nuevo.";
       setError(message);
     } finally {
       setLoading(false);
@@ -69,11 +74,16 @@ export function DeclineModal({
             <div className="w-12 h-12 rounded-2xl bg-[#441328]/60 border border-[#D4AF37]/30 flex items-center justify-center mx-auto text-[#D4AF37] mb-3">
               <Heart className="w-6 h-6" />
             </div>
-            <h3 id="decline-modal-title" className="font-serif-cormorant text-2xl font-bold text-[#FAF6F0]">
+            <h3
+              id="decline-modal-title"
+              className="font-serif-cormorant text-2xl font-bold text-[#FAF6F0]"
+            >
               ¿No podrás acompañarnos?
             </h3>
             <p className="text-xs sm:text-sm text-[#EFC7CF] mt-2 leading-relaxed">
-              Lamentamos que no puedas asistir al cumpleaños de {celebrantName}, pero agradecemos enormemente que nos avises para organizar los lugares.
+              Lamentamos que no puedas asistir al cumpleaños de {celebrantName},
+              pero agradecemos enormemente que nos avises para organizar los
+              lugares.
             </p>
           </div>
 

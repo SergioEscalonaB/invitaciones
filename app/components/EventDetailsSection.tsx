@@ -42,7 +42,9 @@ export function EventDetailsSection({
 
   const handleCopyAddress = async () => {
     try {
-      await navigator.clipboard.writeText(`${event.venueName}, ${event.venueAddress}`);
+      await navigator.clipboard.writeText(
+        `${event.venueName}, ${event.venueAddress}`,
+      );
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 2500);
     } catch {
@@ -61,12 +63,14 @@ export function EventDetailsSection({
 
     const title = encodeURIComponent(`XV Años de ${event.celebrantName}`);
     const details = encodeURIComponent(
-      `Celebración de Quince Años de ${event.celebrantName}.\nLugar: ${event.venueName}\nCódigo de vestimenta: ${event.dressCode}`
+      `Celebración de Quince Años de ${event.celebrantName}.\nLugar: ${event.venueName}\nCódigo de vestimenta: ${event.dressCode}`,
     );
-    const location = encodeURIComponent(`${event.venueName}, ${event.venueAddress}`);
+    const location = encodeURIComponent(
+      `${event.venueName}, ${event.venueAddress}`,
+    );
 
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatGCal(
-      startDate
+      startDate,
     )}/${formatGCal(endDate)}&details=${details}&location=${location}`;
   };
 
@@ -78,7 +82,7 @@ export function EventDetailsSection({
     const pad = (n: number) => (n < 10 ? "0" + n : n);
     const formatIcs = (d: Date) =>
       `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(
-        d.getUTCHours()
+        d.getUTCHours(),
       )}${pad(d.getUTCMinutes())}00Z`;
 
     const icsContent = [
@@ -97,17 +101,25 @@ export function EventDetailsSection({
       "END:VCALENDAR",
     ].join("\r\n");
 
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const blob = new Blob([icsContent], {
+      type: "text/calendar;charset=utf-8",
+    });
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.setAttribute("download", `XV-Anos-${event.celebrantName.replace(/\s+/g, "-")}.ics`);
+    link.setAttribute(
+      "download",
+      `XV-Anos-${event.celebrantName.replace(/\s+/g, "-")}.ics`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   return (
-    <section id="detalles-evento" className="w-full max-w-4xl mx-auto px-4 py-12 scroll-mt-6">
+    <section
+      id="detalles-evento"
+      className="w-full max-w-4xl mx-auto px-4 py-12 scroll-mt-6"
+    >
       <div className="text-center mb-10">
         <span className="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-medium flex items-center justify-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -273,8 +285,8 @@ export function EventDetailsSection({
         </h3>
         <p className="text-xs sm:text-sm text-[#EFC7CF] max-w-md mx-auto mb-6">
           Agradecemos confirmar antes del{" "}
-          <strong className="text-[#F3E5AB]">{event.rsvpDeadline}</strong> para preparar tu
-          lugar especial.
+          <strong className="text-[#F3E5AB]">{event.rsvpDeadline}</strong> para
+          preparar tu lugar especial.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">

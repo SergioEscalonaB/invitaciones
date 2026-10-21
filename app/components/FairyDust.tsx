@@ -19,9 +19,9 @@ export function FairyDust() {
     // Generar partículas aleatorias de ensueño
     const colors = [
       "rgba(250, 246, 237, 0.7)", // marfil
-      "rgba(212, 175, 55, 0.8)",  // oro suave
-      "rgba(247, 226, 230, 0.65)",// rosa suave
-      "rgba(245, 232, 216, 0.75)",// champagne
+      "rgba(212, 175, 55, 0.8)", // oro suave
+      "rgba(247, 226, 230, 0.65)", // rosa suave
+      "rgba(245, 232, 216, 0.75)", // champagne
     ];
 
     const items: Sparkle[] = [];

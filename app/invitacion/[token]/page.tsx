@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { InvitationClientView } from "./InvitationClientView";
 
 interface PageProps {
@@ -7,21 +7,64 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Invitación privada | Quince Años",
-  description: "Una invitación personal para una noche inolvidable.",
+  title: "La noche de Valentina · Mis quince",
+  description:
+    "Una invitación de quince años contada como una pequeña historia.",
 };
 
-async function InvitationContent({ params }: { params: Promise<{ token: string }> }) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#102119",
+};
+
+async function InvitationContent({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
   const { token } = await params;
-  return <InvitationClientView initialToken={token} />;
+  return (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Italiana&display=swap"
+        rel="stylesheet"
+      />
+      <InvitationClientView initialToken={token} />
+    </>
+  );
 }
 
 export default function InvitationPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#14040A]">
-          <div className="w-10 h-10 rounded-full border-2 border-[#D4AF37]/30 border-t-[#D4AF37] animate-spin" />
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "grid",
+            placeItems: "center",
+            background: "#102119",
+          }}
+        >
+          <div
+            style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "50%",
+              border: "1px solid rgba(205,174,114,0.3)",
+              borderTopColor: "#cdae72",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
         </div>
       }
     >

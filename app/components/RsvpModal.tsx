@@ -32,12 +32,14 @@ export function RsvpModal({
   onSuccess,
 }: RsvpModalProps) {
   const [confirmedGuests, setConfirmedGuests] = useState<number>(
-    invitation.confirmedGuests > 0 ? invitation.confirmedGuests : Math.min(1, invitation.allowedGuests)
+    invitation.confirmedGuests > 0
+      ? invitation.confirmedGuests
+      : Math.min(1, invitation.allowedGuests),
   );
   const [attendees, setAttendees] = useState<string[]>(
     invitation.attendees && invitation.attendees.length > 0
       ? invitation.attendees
-      : [invitation.guestName]
+      : [invitation.guestName],
   );
   const [note, setNote] = useState<string>(invitation.note || "");
   const [loading, setLoading] = useState(false);
@@ -99,7 +101,9 @@ export function RsvpModal({
 
     // Validación preventiva
     if (confirmedGuests > invitation.allowedGuests) {
-      setError(`No es posible confirmar más de ${invitation.allowedGuests} personas.`);
+      setError(
+        `No es posible confirmar más de ${invitation.allowedGuests} personas.`,
+      );
       return;
     }
 
@@ -117,7 +121,10 @@ export function RsvpModal({
         note: note.trim(),
       };
 
-      const updated = await invitationService.confirmRsvp(invitation.token, payload);
+      const updated = await invitationService.confirmRsvp(
+        invitation.token,
+        payload,
+      );
 
       // Disparar confeti mágico de celebración
       try {
@@ -135,7 +142,9 @@ export function RsvpModal({
       onSuccess(updated);
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Ocurrió un error al enviar tu confirmación. Intenta de nuevo.";
+        err instanceof Error
+          ? err.message
+          : "Ocurrió un error al enviar tu confirmación. Intenta de nuevo.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -183,8 +192,8 @@ export function RsvpModal({
 
             <div className="p-4 rounded-2xl bg-[#1D060F]/80 border border-[#D4AF37]/20 text-xs text-[#FAF6F0]/80">
               <p>
-                Si requieres realizar algún cambio antes de la fecha límite, puedes
-                volver a abrir tu enlace en cualquier momento.
+                Si requieres realizar algún cambio antes de la fecha límite,
+                puedes volver a abrir tu enlace en cualquier momento.
               </p>
             </div>
 
@@ -203,7 +212,10 @@ export function RsvpModal({
                 <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span>Confirmar Asistencia</span>
               </div>
-              <h3 id="rsvp-modal-title" className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-[#FAF6F0]">
+              <h3
+                id="rsvp-modal-title"
+                className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-[#FAF6F0]"
+              >
                 {invitation.guestName}
               </h3>
               <p className="text-xs sm:text-sm text-[#EFC7CF]/80 mt-1">
@@ -278,7 +290,9 @@ export function RsvpModal({
                       type="text"
                       placeholder={`Nombre del asistente #${idx + 1}`}
                       value={attendees[idx] || ""}
-                      onChange={(e) => handleAttendeeNameChange(idx, e.target.value)}
+                      onChange={(e) =>
+                        handleAttendeeNameChange(idx, e.target.value)
+                      }
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#18040C] border border-[#D4AF37]/25 text-[#FAF6F0] placeholder-[#FAF6F0]/30 text-xs focus:outline-none focus:border-[#D4AF37] transition-colors"
                     />
                   </div>
@@ -319,7 +333,10 @@ export function RsvpModal({
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Confirmar {confirmedGuests} {confirmedGuests === 1 ? "Lugar" : "Lugares"}</span>
+                    <span>
+                      Confirmar {confirmedGuests}{" "}
+                      {confirmedGuests === 1 ? "Lugar" : "Lugares"}
+                    </span>
                   </>
                 )}
               </button>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Cinzel, Plus_Jakarta_Sans } from "next/font/google";
+import { Cormorant_Garamond, Cinzel, DM_Sans, Italiana, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -24,6 +24,20 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+const invitationSans = DM_Sans({
+  variable: "--font-invitation-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const invitationSerif = Italiana({
+  variable: "--font-invitation-serif",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Atelier de Invitaciones",
   description: "Gestión de invitaciones digitales y confirmaciones.",
@@ -42,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${cormorant.variable} ${cinzel.variable} ${jakarta.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${cinzel.variable} ${jakarta.variable} ${invitationSans.variable} ${invitationSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans selection:bg-[#eadfd2] selection:text-[#292521]">
         {children}

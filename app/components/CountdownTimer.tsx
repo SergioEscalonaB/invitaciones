@@ -17,7 +17,10 @@ interface TimeRemaining {
   isToday: boolean;
 }
 
-export function CountdownTimer({ targetDateStr, celebrantName }: CountdownTimerProps) {
+export function CountdownTimer({
+  targetDateStr,
+  celebrantName,
+}: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeRemaining | null>(null);
   const [isValidDate, setIsValidDate] = useState<boolean>(true);
 
@@ -52,7 +55,9 @@ export function CountdownTimer({ targetDateStr, celebrantName }: CountdownTimerP
       }
 
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const hours = Math.floor(
+        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+      );
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
@@ -111,7 +116,10 @@ export function CountdownTimer({ targetDateStr, celebrantName }: CountdownTimerP
   ];
 
   return (
-    <section aria-label="Cuenta regresiva para la fiesta" className="my-10 w-full max-w-xl mx-auto">
+    <section
+      aria-label="Cuenta regresiva para la fiesta"
+      className="my-10 w-full max-w-xl mx-auto"
+    >
       <div className="text-center mb-4">
         <span className="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-medium">
           Cuenta Regresiva

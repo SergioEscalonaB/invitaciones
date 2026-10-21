@@ -12,11 +12,11 @@ export function MusicPlayer() {
   const notes = [
     293.66, // D4
     369.99, // F#4
-    440.00, // A4
+    440.0, // A4
     554.37, // C#5
     587.33, // D5
     739.99, // F#5
-    880.00, // A5
+    880.0, // A5
   ];
 
   const playChime = (freq: number, ctx: AudioContext) => {
@@ -45,7 +45,8 @@ export function MusicPlayer() {
   const startFairyMelody = () => {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
 
     if (!audioCtxRef.current) {
       audioCtxRef.current = new AudioContextClass();
@@ -100,7 +101,11 @@ export function MusicPlayer() {
       <button
         onClick={togglePlay}
         type="button"
-        aria-label={isPlaying ? "Pausar música ambiental" : "Reproducir música ambiental de cuento de hadas"}
+        aria-label={
+          isPlaying
+            ? "Pausar música ambiental"
+            : "Reproducir música ambiental de cuento de hadas"
+        }
         className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-300 shadow-xl border ${
           isPlaying
             ? "bg-[#2A0C1A]/90 text-[#F5E8D8] border-[#D4AF37]/60 shadow-[0_0_20px_rgba(212,175,55,0.35)]"
